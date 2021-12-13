@@ -25,7 +25,7 @@ from datasets import SemiSupervisedDataset, SemiSupervisedSampler, DATASETS
 from attack_pgd import pgd
 from smoothing import quick_smoothing
 
-from autoaugment import CIFAR10Policy
+from autoaugment import CIFAR100Policy
 from cutout import Cutout
 
 import logging
@@ -36,7 +36,7 @@ parser = argparse.ArgumentParser(
     description='PyTorch TRADES Adversarial Training')
 
 # Dataset config
-parser.add_argument('--dataset', type=str, default='cifar10',
+parser.add_argument('--dataset', type=str, default='cifar100',
                     choices=DATASETS,
                     help='The dataset to use for training)')
 parser.add_argument('--data_dir', default='data', type=str,
@@ -189,7 +189,7 @@ device = torch.device('cuda' if use_cuda else 'cpu')
 # ------------------------------------------------------------------------------
 
 # --------------------------- DATA AUGMENTATION --------------------------------
-if args.dataset == 'cifar10':
+if args.dataset == 'cifar100':
     transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
@@ -203,13 +203,13 @@ elif args.dataset == 'svhn':
     transform_train = transforms.ToTensor()
 
 if args.autoaugment or args.cutout:
-    assert (args.dataset == 'cifar10')
+    assert (args.dataset == 'cifar100')
     transform_list = [
         transforms.RandomCrop(32, padding=4, fill=128),
         # fill parameter needs torchvision installed from source
         transforms.RandomHorizontalFlip()]
     if args.autoaugment:
-        transform_list.append(CIFAR10Policy())
+        transform_list.append(CIFAR100Policy())
     transform_list.append(transforms.ToTensor())
     if args.cutout:
         transform_list.append(Cutout(n_holes=1, length=16))
@@ -431,7 +431,7 @@ def main():
     train_df = pd.DataFrame()
     eval_df = pd.DataFrame()
 
-    num_classes = 10
+    num_classes = 24
     model = get_model(args.model, num_classes=num_classes,
                       normalize_input=args.normalize_input)
     if use_cuda:
